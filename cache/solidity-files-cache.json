@@ -2,7 +2,7 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/kyletredway/Code/erc20-token-vesting/contracts/SampleToken.sol": {
-      "lastModificationDate": 1773763197602,
+      "lastModificationDate": 1773773772129,
       "contentHash": "ca1be7b7304c4c0b99982bc8da2f3ea0",
       "sourceName": "contracts/SampleToken.sol",
       "solcConfig": {
@@ -703,8 +703,8 @@
       ]
     },
     "/Users/kyletredway/Code/erc20-token-vesting/contracts/TokenVesting.sol": {
-      "lastModificationDate": 1774473969426,
-      "contentHash": "0ecee05f8635d408336567f16ecff1a4",
+      "lastModificationDate": 1774541046631,
+      "contentHash": "eaa2ff33f699fb8bd0fff9156f34ecca",
       "sourceName": "contracts/TokenVesting.sol",
       "solcConfig": {
         "version": "0.8.19",

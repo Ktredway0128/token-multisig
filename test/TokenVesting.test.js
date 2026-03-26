@@ -226,6 +226,70 @@ describe("TokenVesting", function () {
             const scheduleAfter = await vesting.getVestingSchedule(scheduleId);
             expect(scheduleAfter.released).to.equal(releasable);
         });
+
+        it("should correctly decrement totalAmount when revoked beneficiary releases frozen tokens", async function () {
+            // Move time to halfway — some vested, some unvested
+            const latestBlock = await ethers.provider.getBlock("latest");
+            const currentTime = latestBlock.timestamp;
+            await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + cliff + 10]);
+            await ethers.provider.send("evm_mine");
+        
+            const totalBefore = await vesting.vestingSchedulesTotalAmount();
+        
+            // Get releasable before revoke
+            const scheduleBeforeRevoke = await vesting.getVestingSchedule(scheduleId);
+            const releasable = await vesting.computeReleasableAmount(scheduleBeforeRevoke);
+        
+            // Admin revokes
+            await vesting.connect(admin).revoke(scheduleId);
+        
+            const totalAfterRevoke = await vesting.vestingSchedulesTotalAmount();
+        
+            // Beneficiary releases frozen amount
+            await vesting.connect(alice).release(scheduleId);
+        
+            const totalAfterRelease = await vesting.vestingSchedulesTotalAmount();
+        
+            // KEY ASSERTION: total locked should have decreased by the releasable amount
+            expect(totalAfterRelease).to.equal(totalAfterRevoke.sub(releasable));
+        
+            // And total should now be 0 since this was the only schedule
+            expect(totalAfterRelease).to.equal(0);
+        });
+
+        // @notice Verifies activeSchedulesCount decrements when beneficiary releases final tokens
+        it("should decrement activeSchedulesCount when beneficiary releases final tokens", async function () {
+            // Move time past full duration
+            const latestBlock = await ethers.provider.getBlock("latest");
+            const currentTime = latestBlock.timestamp;
+            await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + duration]);
+            await ethers.provider.send("evm_mine");
+
+            // Active count should still be 1
+            expect(await vesting.activeSchedulesCount()).to.equal(1);
+
+            // Release all tokens
+            await vesting.connect(alice).release(scheduleId);
+
+            // Active count should now be 0
+            expect(await vesting.activeSchedulesCount()).to.equal(0);
+        });
+
+        // @notice Verifies activeSchedulesCount decrements on revoke and NOT again on final release
+        it("should decrement activeSchedulesCount on revoke and not again on final release", async function () {
+            const latestBlock = await ethers.provider.getBlock("latest");
+            const currentTime = latestBlock.timestamp;
+            await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + cliff]);
+            await ethers.provider.send("evm_mine");
+
+            // Revoke — should decrement immediately
+            await vesting.connect(admin).revoke(scheduleId);
+            expect(await vesting.activeSchedulesCount()).to.equal(0);
+
+            // Beneficiary releases frozen amount — should NOT decrement again
+            await vesting.connect(alice).release(scheduleId);
+            expect(await vesting.activeSchedulesCount()).to.equal(0);
+        });
     });
 
     describe("Withdraw functionality", function () {

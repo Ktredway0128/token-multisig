@@ -19,6 +19,7 @@ contract TokenVesting is AccessControl, ReentrancyGuard {
 
     uint256 public vestingSchedulesTotalAmount;
     uint256 public vestingSchedulesCount;
+    uint256 public activeSchedulesCount;
 
     struct VestingSchedule {
         bool initialized;
@@ -105,6 +106,7 @@ contract TokenVesting is AccessControl, ReentrancyGuard {
 
         vestingSchedulesTotalAmount += amount;
         vestingSchedulesCount++;
+        activeSchedulesCount++;
         holdersVestingCount[beneficiary]++;
 
         emit VestingScheduleCreated(vestingId, beneficiary, amount);
@@ -130,8 +132,10 @@ contract TokenVesting is AccessControl, ReentrancyGuard {
         require(amount > 0, "No tokens available");
 
         schedule.released += amount;
-        if (!schedule.revoked) {
-            vestingSchedulesTotalAmount -= amount;
+        vestingSchedulesTotalAmount -= amount;
+
+        if (schedule.released >= schedule.totalAmount && !schedule.revoked) {
+            activeSchedulesCount--;
         }
         
         token.safeTransfer(schedule.beneficiary, amount);
@@ -155,6 +159,8 @@ contract TokenVesting is AccessControl, ReentrancyGuard {
         uint256 unvested = schedule.totalAmount - vestedTotal;
 
         vestingSchedulesTotalAmount -= unvested;
+
+        activeSchedulesCount--;
 
         schedule.vestedAtRevocation = vestedTotal;
         
