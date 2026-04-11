@@ -1,4 +1,4 @@
-# ERC-20 TOKEN VESTING CONTRACT
+# TOKEN VESTING CONTRACT
 
 [![Verified on Etherscan](https://img.shields.io/badge/Etherscan-Verified-brightgreen)](https://sepolia.etherscan.io/address/0x81F71D5D73383750C9d4BCe65C493A55BA887ecB#code)
 
@@ -166,7 +166,7 @@ This modular architecture provides strong security and reusable functionality wh
 
 ### CLONE THE REPOSITORY:
 
-git clone https://github.com/Ktredway0128/erc20-token-vesting
+git clone https://github.com/Ktredway0128/token-vesting
 
 cd erc20-token-vesting
 
