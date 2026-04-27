@@ -1,6 +1,7 @@
 # TOKEN LIQUIDITY LOCK CONTRACT
 
-[![Verified on Etherscan](https://img.shields.io/badge/Etherscan-Verified-brightgreen)](https://sepolia.etherscan.io)
+[![Verified on Etherscan](https://img.shields.io/badge/Etherscan-Verified-brightgreen)](https://sepolia.etherscan.io/address/0x1BA24F8ebA2d865493b8e4B3D6cd1bDe8d42338B#code
+)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.19-blue)
 ![Hardhat](https://img.shields.io/badge/Built%20with-Hardhat-yellow)
@@ -204,9 +205,10 @@ Verifies the contract on Etherscan
 
 | Contract | Address | Etherscan |
 |----------|---------|-----------|
-| LiquidityLock | `Pending` | Pending |
+| LiquidityLock | 0x1BA24F8ebA2d865493b8e4B3D6cd1bDe8d42338B | https://sepolia.etherscan.io/address/0x1BA24F8ebA2d865493b8e4B3D6cd1bDe8d42338B#code
+ |
 
-Deployed: Pending
+Deployed: 2026/4/27
 
 
 ## SECURITY PRACTICES
