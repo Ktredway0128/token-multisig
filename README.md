@@ -21,6 +21,12 @@ Security best practices
 
 This contract is part of the Tredway Development full token suite, which includes token launch, vesting, airdrop, staking, crowdsale, and governance infrastructure.
 
+## DASHBOARD
+
+Live dashboard: [token-liquidity-lock-dashboard.netlify.app](https://token-liquidity-lock-dashboard.netlify.app)
+
+Dashboard repository: [token-liquidity-lock-dashboard](https://github.com/Ktredway0128/token-liquidity-lock-dashboard)
+
 
 ## PROJECT GOALS
 
