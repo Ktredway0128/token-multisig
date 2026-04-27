@@ -1,112 +1,77 @@
-# TOKEN VESTING CONTRACT
+# TOKEN LIQUIDITY LOCK CONTRACT
 
-[![Verified on Etherscan](https://img.shields.io/badge/Etherscan-Verified-brightgreen)](https://sepolia.etherscan.io/address/0x81F71D5D73383750C9d4BCe65C493A55BA887ecB#code)
-
+[![Verified on Etherscan](https://img.shields.io/badge/Etherscan-Verified-brightgreen)](https://sepolia.etherscan.io)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.19-blue)
 ![Hardhat](https://img.shields.io/badge/Built%20with-Hardhat-yellow)
 
-Built by [Kyle Tredway Development](https://kyle-tredway-portfolio.netlify.app/) — professional Solidity smart contract packages for Web3 companies.
+Built by [Tredway Development](https://tredwaydev.com) — professional Solidity smart contract packages for Web3 companies.
 
-A secure and production-ready ERC-20 token vesting contract built with Solidity, OpenZeppelin, and Hardhat.
+A secure and production-ready liquidity lock contract built with Solidity, OpenZeppelin, and Hardhat.
 
 > ⚠️ These contracts have not been professionally audited. A full security audit is strongly recommended before any mainnet deployment.
 
-
-This project demonstrates the full lifecycle of a token vesting system including:
+This project allows projects to lock LP tokens from a decentralized exchange, proving to investors that liquidity cannot be removed after launch.
 
 Smart contract development
 Automated testing
 Deployment scripting
 Security best practices
 
-This repository represents the second package in a Web3 infrastructure suite, designed to work alongside the ERC-20 Token Launch contract to provide investor and team token vesting capabilities.
+This contract is part of the Tredway Development full token suite, which includes token launch, vesting, airdrop, staking, crowdsale, and governance infrastructure.
 
 
 ## PROJECT GOALS
 
-The purpose of this project is to demonstrate how a modern token vesting contract should be designed for real-world use.
+The purpose of this project is to give Web3 projects a trustless way to prove liquidity commitment to their community.
 
-The contract includes common features required by token vesting systems:
+The contract includes the core features required by a production liquidity lock:
 
-Cliff and linear vesting schedules
-Multiple schedules per beneficiary
-Admin controlled revocation
-Fair beneficiary protection on revocation
-Role-based administrative permissions
-Event logging for transparency
-
-These patterns are widely used in production Web3 applications.
+LP token deposits from any DEX
+Time-based unlock enforcement
+Multiple locks per wallet
+Public lock visibility
+Rug pull prevention
 
 
 ## SMART CONTRACT FEATURES
 
-VESTING SCHEDULES
+TRUSTLESS CUSTODY
 
-Admins can create individual vesting schedules for any beneficiary.
-Each schedule defines a total amount, start time, cliff period, and vesting duration.
-Every schedule creation emits a VestingScheduleCreated event.
+Once LP tokens are deposited, no one — including the contract deployer — can access them before the unlock time. The contract itself is the sole authority.
 
-CLIFF PERIOD
+MULTI-TOKEN SUPPORT
 
-Tokens are locked until the cliff period has passed.
-No tokens can be released before the cliff regardless of elapsed time.
+Any ERC-20 LP token can be locked. Uniswap, Sushiswap, or any DEX pair token is supported without modification.
 
-LINEAR VESTING
+MULTIPLE LOCKS PER OWNER
 
-After the cliff, tokens are released linearly over the remaining duration.
-Beneficiaries can claim their available tokens at any time after the cliff.
+A single wallet can create multiple locks for different tokens or different unlock periods simultaneously.
 
-MULTIPLE SCHEDULES PER BENEFICIARY
+TIME-BASED UNLOCKING
 
-A single address can hold multiple independent vesting schedules.
-Each schedule is tracked by a unique ID derived from the holder address and index.
+Each lock stores a Unix timestamp. Withdrawals are rejected until `block.timestamp` reaches the unlock time.
 
-REVOCATION
+REENTRANCY PROTECTION
 
-Admins can revoke a vesting schedule at any time.
-Unvested tokens are returned to the contract upon revocation.
-Tokens that vested before revocation remain claimable by the beneficiary.
+The contract uses OpenZeppelin's ReentrancyGuard on all state-changing functions. State is updated before any token transfer to prevent reentrancy attacks.
 
-The exact vested amount is frozen at the moment of revocation using a
-vestedAtRevocation field stored on the schedule. This prevents the releasable
-amount from continuing to climb after revocation, ensuring beneficiaries can
-only ever claim what was legitimately vested before the schedule was cancelled.
+SAFE TOKEN TRANSFERS
 
-ROLE-BASED PERMISSIONS
-
-Administrative actions are protected using OpenZeppelin's AccessControl.
-Roles include:
-
-ROLE                DESCRIPTION
-
-DEFAULT_ADMIN_ROLE  Can manage roles
-ADMIN_ROLE          Can create schedules, revoke, and withdraw
-
-ADMIN ROLE PROTECTION
-
-The contract prevents the admin from accidentally renouncing the DEFAULT_ADMIN_ROLE.
-This ensures the contract can never be permanently locked without an administrator.
-
-TOKEN WITHDRAWAL
-
-Admins can withdraw any tokens not locked in an active vesting schedule.
-This allows recovery of excess or unallocated tokens.
+All token transfers use OpenZeppelin's SafeERC20 library, protecting against non-standard ERC-20 implementations that don't return a boolean on transfer.
 
 EVENT TRACKING
 
-The contract emits events for important actions:
+The contract emits events for every major action:
 
-VestingScheduleCreated
-TokensReleased
-VestingRevoked
+TokensLocked
 
-Events make it easier for applications, dashboards, and explorers to monitor contract activity.
+TokensWithdrawn
+
+Events are indexed by owner and token address for efficient frontend filtering.
 
 
 ## TECHNOLOGY STACK
-
-This project was built using the following tools:
 
 Solidity – Smart contract programming language
 
@@ -126,25 +91,29 @@ Sepolia Test Network – Deployment environment
 ## PROJECT STRUCTURE
 
 contracts/
-    TokenVesting.sol
+    LiquidityLock.sol
+    SampleToken.sol
 
 scripts/
+    deploy.js
+    deploy-demo.js
     deploy-token.js
-    deploy-vesting.js
 
 test/
-    TokenVesting.test.js
+    LiquidityLock.test.js
 
 hardhat.config.js
 .env
 
 CONTRACTS
 
-Contains the vesting smart contract implementation.
+LiquidityLock.sol is the core deliverable. SampleToken.sol is included as a test fixture only and is not part of the production deployment.
 
 SCRIPTS
 
-Contains deployment scripts for both the token and vesting contracts.
+deploy.js deploys LiquidityLock to Sepolia and verifies on Etherscan.
+deploy-demo.js deploys the full local environment with two test tokens for dashboard development.
+deploy-token.js deploys SampleToken independently for testing purposes.
 
 TESTS
 
@@ -153,22 +122,22 @@ Contains automated tests verifying all major contract behaviors.
 
 ## SMART CONTRACT ARCHITECTURE
 
-The TokenVesting contract extends the following OpenZeppelin modules:
+The LiquidityLock contract extends OpenZeppelin's ReentrancyGuard and uses the following libraries:
 
-AccessControl
-ReentrancyGuard
-SafeERC20
+ReentrancyGuard – Prevents reentrancy attacks on withdraw
+SafeERC20 – Safe token transfer handling
+IERC20 – Interface for interacting with any ERC-20 token
 
-This modular architecture provides strong security and reusable functionality while keeping the contract easy to audit.
+Each lock is stored as a struct containing the token address, owner address, amount, unlock timestamp, and withdrawal status. Locks are organized in a private mapping from owner address to an array of Lock structs, exposed through controlled view functions.
 
 
 ## INSTALLATION
 
 ### CLONE THE REPOSITORY:
 
-git clone https://github.com/Ktredway0128/token-vesting
+git clone https://github.com/Ktredway0128/token-liquidity-lock
 
-cd token-vesting
+cd token-liquidity-lock
 
 ### INSTALL DEPENDENCIES:
 
@@ -184,15 +153,21 @@ npx hardhat test
 
 ### THE TESTS VALIDATE:
 
-Vesting schedule creation
-Cliff enforcement
-Linear token release
-Full duration release
-Admin revocation
-Beneficiary protection after revocation
-Token withdrawal
-Edge cases and access control
-renounceRole protection
+Successful token locking
+
+Multiple locks per owner
+
+Zero amount rejection
+
+Zero address rejection
+
+Withdrawal after unlock time
+
+Withdrawal rejection before unlock time
+
+Double withdrawal prevention
+
+Cross-wallet withdrawal prevention
 
 
 ## ENVIRONMENT SETUP
@@ -205,80 +180,79 @@ DEPLOYER_PRIVATE_KEY=YOUR_PRIVATE_KEY
 
 ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY
 
-These values allow Hardhat to:
-
-Connect to the Sepolia network
-Sign transactions using the deployer's wallet
-
 
 ## DEPLOYMENT
 
-This contract requires the ERC-20 token to be deployed first.
-The token address is passed into the vesting contract constructor.
+To deploy the contract to Sepolia:
 
-### STEP 1 - Deploy the token:
-
-npx hardhat run scripts/deploy-token.js --network sepolia
-
-### STEP 2 - Copy the token address from the console output and paste it into deploy-vesting.js
-
-### STEP 3 - Deploy the vesting contract:
-
-npx hardhat run scripts/deploy-vesting.js --network sepolia
+npx hardhat run scripts/deploy.js --network sepolia
 
 The deployment script performs the following steps:
 
 Retrieves the deployer wallet
+
 Creates the contract factory
-Deploys the vesting contract with the token address
-Waits for confirmation
-Outputs the deployed contract address
+
+Deploys LiquidityLock with no constructor arguments
+
+Waits for block confirmations
+
+Verifies the contract on Etherscan
+
 
 ### SEPOLIA TESTNET DEPLOYMENT
 
 | Contract | Address | Etherscan |
 |----------|---------|-----------|
-| SampleToken | `0x036150039c33b1645080a9c913f96D4c65ccca48` | [View on Etherscan](https://sepolia.etherscan.io/address/0x036150039c33b1645080a9c913f96D4c65ccca48#code) |
-| TokenVesting | `0x81F71D5D73383750C9d4BCe65C493A55BA887ecB` | [View on Etherscan](https://sepolia.etherscan.io/address/0x81F71D5D73383750C9d4BCe65C493A55BA887ecB#code) |
+| LiquidityLock | `Pending` | Pending |
 
-Deployed: 2026-03-26
+Deployed: Pending
 
 
 ## SECURITY PRACTICES
 
 The contract uses well-established patterns from OpenZeppelin including:
 
-ReentrancyGuard on all token release functions
-SafeERC20 for safe token transfers
-Role-based permissions
-Fair beneficiary protection on revocation
-Audited contract libraries
+ReentrancyGuard on all state-changing functions
+
+SafeERC20 for all token transfers
+
+State updates before external calls
+
+No admin privileges or owner controls
 
 These are common practices used in production smart contracts.
 
 
 ## EXAMPLE USE CASES
 
-This vesting architecture can support many types of projects:
+This liquidity lock contract is suitable for:
 
-Employee token compensation
-Investor token lockups
-Founder vesting schedules
-Advisor token grants
-DAO contributor rewards
+Token launch projects proving liquidity commitment
+
+DEX launches requiring investor trust
+
+Presale projects locking LP after launch
+
+Any project needing verifiable liquidity lockup
 
 
-## FUTURE ENHANCEMENTS
+## FULL TOKEN SUITE
 
-This project serves as the second layer in a larger Web3 infrastructure package.
+This contract is part of the Tredway Development token suite:
 
-Possible upgrades include:
-
-Airdrop contract integration
-Staking rewards
-Governance (DAO voting)
-Treasury management
-Upgradeable proxy contracts
+| Contract | Description |
+|----------|-------------|
+| SampleToken V1 | ERC-20 token with minting, burning, and pause |
+| TokenVesting | Cliff and linear vesting schedules |
+| TokenAirdrop | Merkle tree airdrop distribution |
+| TokenStaking | ERC-20 staking with rewards |
+| TokenCrowdsale | Capped token crowdsale |
+| SampleToken V2 | Governance token with voting and permit |
+| TimelockController | Time-delayed governance execution |
+| TokenGovernance | On-chain DAO voting |
+| NftMembership | ERC-721 membership NFT |
+| LiquidityLock | LP token time lock |
 
 
 ## AUTHOR
@@ -287,6 +261,8 @@ Kyle Tredway
 
 Smart Contract Developer / Token Launch Specialist
 
-License
+tredwaydev.com | @kyletredwaydev
+
+## LICENSE
 
 MIT License
