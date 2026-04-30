@@ -1,81 +1,88 @@
-# TOKEN LIQUIDITY LOCK CONTRACT
+# TOKEN MULTISIG WALLET CONTRACT
 
-[![Verified on Etherscan](https://img.shields.io/badge/Etherscan-Verified-brightgreen)](https://sepolia.etherscan.io/address/0x1BA24F8ebA2d865493b8e4B3D6cd1bDe8d42338B#code
-)
+[![Verified on Etherscan](https://img.shields.io/badge/Etherscan-Verified-brightgreen)](https://sepolia.etherscan.io/address/DEPLOY_ADDRESS#code)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Solidity](https://img.shields.io/badge/Solidity-0.8.19-blue)
 ![Hardhat](https://img.shields.io/badge/Built%20with-Hardhat-yellow)
 
 Built by [Tredway Development](https://tredwaydev.com) — professional Solidity smart contract packages for Web3 companies.
 
-A secure and production-ready liquidity lock contract built with Solidity, OpenZeppelin, and Hardhat.
+A secure and production-ready multi-signature wallet contract built with Solidity, OpenZeppelin, and Hardhat.
 
 > ⚠️ These contracts have not been professionally audited. A full security audit is strongly recommended before any mainnet deployment.
 
-This project allows projects to lock LP tokens from a decentralized exchange, proving to investors that liquidity cannot be removed after launch.
+This project allows multiple owners to collectively control contract execution. No single wallet can submit and execute a transaction alone — a configurable threshold of approvals is required before any action is taken.
 
 Smart contract development
 Automated testing
 Deployment scripting
 Security best practices
 
-This contract is part of the Tredway Development full token suite, which includes token launch, vesting, airdrop, staking, crowdsale, and governance infrastructure.
+This contract is part of the Tredway Development full token suite, which includes token launch, vesting, airdrop, staking, crowdsale, governance, and multisig infrastructure.
 
 ## DASHBOARD
 
-Live dashboard: [token-liquidity-lock-dashboard.netlify.app](https://token-liquidity-lock-dashboard.netlify.app)
+Live dashboard: [token-multisig-dashboard.netlify.app](https://token-multisig-dashboard.netlify.app)
 
-Dashboard repository: [token-liquidity-lock-dashboard](https://github.com/Ktredway0128/token-liquidity-lock-dashboard)
+Dashboard repository: [token-multisig-dashboard](https://github.com/Ktredway0128/token-multisig-dashboard)
 
 
 ## PROJECT GOALS
 
-The purpose of this project is to give Web3 projects a trustless way to prove liquidity commitment to their community.
+The purpose of this project is to give Web3 projects a trustless way to manage shared control over smart contracts and protocol actions.
 
-The contract includes the core features required by a production liquidity lock:
+The contract includes the core features required by a production multisig wallet:
 
-LP token deposits from any DEX
-Time-based unlock enforcement
-Multiple locks per wallet
-Public lock visibility
-Rug pull prevention
+Multi-owner transaction approval
+Configurable approval threshold
+Transaction submission and queuing
+Approval revocation before execution
+Reentrancy protected execution
 
 
 ## SMART CONTRACT FEATURES
 
-TRUSTLESS CUSTODY
+MULTI-OWNER CONTROL
 
-Once LP tokens are deposited, no one — including the contract deployer — can access them before the unlock time. The contract itself is the sole authority.
+Transactions require a configurable number of owner approvals before execution. No single wallet has unilateral control regardless of their role in the project.
 
-MULTI-TOKEN SUPPORT
+CONFIGURABLE THRESHOLD
 
-Any ERC-20 LP token can be locked. Uniswap, Sushiswap, or any DEX pair token is supported without modification.
+The required number of approvals is set at deployment. A 2 of 3 or 3 of 5 configuration can be chosen to match the team structure of any project.
 
-MULTIPLE LOCKS PER OWNER
+TRANSACTION QUEUING
 
-A single wallet can create multiple locks for different tokens or different unlock periods simultaneously.
+Proposed transactions are stored on chain with their destination, value, and encoded call data. Owners can review, approve, or revoke at any time before execution.
 
-TIME-BASED UNLOCKING
+APPROVAL REVOCATION
 
-Each lock stores a Unix timestamp. Withdrawals are rejected until `block.timestamp` reaches the unlock time.
+Any owner can revoke their approval before a transaction is executed. If approvals drop below the threshold the transaction cannot proceed until the threshold is met again.
+
+ARBITRARY EXECUTION
+
+The multisig can call any function on any contract by encoding the call data into the transaction. This makes it suitable as the owner or admin of any contract in the suite.
 
 REENTRANCY PROTECTION
 
-The contract uses OpenZeppelin's ReentrancyGuard on all state-changing functions. State is updated before any token transfer to prevent reentrancy attacks.
+The contract uses OpenZeppelin's ReentrancyGuard on the execute function. State is updated before any external call to prevent reentrancy attacks.
 
-SAFE TOKEN TRANSFERS
+DUPLICATE OWNER PREVENTION
 
-All token transfers use OpenZeppelin's SafeERC20 library, protecting against non-standard ERC-20 implementations that don't return a boolean on transfer.
+The constructor validates that no address appears twice in the owner list and that no zero address is included.
 
 EVENT TRACKING
 
 The contract emits events for every major action:
 
-TokensLocked
+TransactionSubmitted
 
-TokensWithdrawn
+TransactionApproved
 
-Events are indexed by owner and token address for efficient frontend filtering.
+ApprovalRevoked
+
+TransactionExecuted
+
+Events are indexed by transaction index and owner address for efficient frontend filtering.
 
 
 ## TECHNOLOGY STACK
@@ -98,53 +105,50 @@ Sepolia Test Network – Deployment environment
 ## PROJECT STRUCTURE
 
 contracts/
-    LiquidityLock.sol
-    SampleToken.sol
+    MultiSigWallet.sol
 
 scripts/
-    deploy.js
-    deploy-demo.js
-    deploy-token.js
+    deploy-multisig.js
 
 test/
-    LiquidityLock.test.js
+    MultiSigWallet.test.js
 
 hardhat.config.js
 .env
 
 CONTRACTS
 
-LiquidityLock.sol is the core deliverable. SampleToken.sol is included as a test fixture only and is not part of the production deployment.
+MultiSigWallet.sol is the core deliverable. No auxiliary token contract is required — the multisig operates independently of any specific token standard.
 
 SCRIPTS
 
-deploy.js deploys LiquidityLock to Sepolia and verifies on Etherscan.
-deploy-demo.js deploys the full local environment with two test tokens for dashboard development.
-deploy-token.js deploys SampleToken independently for testing purposes.
+deploy-multisig.js deploys MultiSigWallet to the target network, saves deployment info to a JSON file, and verifies on Etherscan when deploying to Sepolia.
 
 TESTS
 
-Contains automated tests verifying all major contract behaviors.
+Contains 28 automated tests verifying all major contract behaviors and edge cases.
 
 
 ## SMART CONTRACT ARCHITECTURE
 
-The LiquidityLock contract extends OpenZeppelin's ReentrancyGuard and uses the following libraries:
+The MultiSigWallet contract extends OpenZeppelin's ReentrancyGuard and implements the following:
 
-ReentrancyGuard – Prevents reentrancy attacks on withdraw
-SafeERC20 – Safe token transfer handling
-IERC20 – Interface for interacting with any ERC-20 token
+ReentrancyGuard – Prevents reentrancy attacks on execute
 
-Each lock is stored as a struct containing the token address, owner address, amount, unlock timestamp, and withdrawal status. Locks are organized in a private mapping from owner address to an array of Lock structs, exposed through controlled view functions.
+Custom owner validation – Built without OpenZeppelin Ownable to support multi-owner consensus logic
+
+Dual owner tracking – Uses both an address array for iteration and a mapping for O(1) ownership lookups
+
+Each transaction is stored as a struct containing the destination address, ETH value, call data, execution status, and approval count. Transactions are organized in a mapping from transaction index to Transaction struct, exposed through controlled view functions.
 
 
 ## INSTALLATION
 
 ### CLONE THE REPOSITORY:
 
-git clone https://github.com/Ktredway0128/token-liquidity-lock
+git clone https://github.com/Ktredway0128/token-multisig
 
-cd token-liquidity-lock
+cd token-multisig
 
 ### INSTALL DEPENDENCIES:
 
@@ -160,21 +164,27 @@ npx hardhat test
 
 ### THE TESTS VALIDATE:
 
-Successful token locking
+Correct owner and threshold setup at deployment
 
-Multiple locks per owner
+Rejection of invalid deployment configurations
 
-Zero amount rejection
+Transaction submission by owners
 
-Zero address rejection
+Rejection of submission by non owners
 
-Withdrawal after unlock time
+Approval tracking per owner
 
-Withdrawal rejection before unlock time
+Double approval prevention
 
-Double withdrawal prevention
+Approval revocation
 
-Cross-wallet withdrawal prevention
+Execution after threshold is met
+
+Execution rejection below threshold
+
+Double execution prevention
+
+Edge case — revoke drops below threshold before execution
 
 
 ## ENVIRONMENT SETUP
@@ -192,7 +202,7 @@ ETHERSCAN_API_KEY=YOUR_ETHERSCAN_API_KEY
 
 To deploy the contract to Sepolia:
 
-npx hardhat run scripts/deploy.js --network sepolia
+npx hardhat run scripts/deploy-multisig.js --network sepolia
 
 The deployment script performs the following steps:
 
@@ -200,7 +210,9 @@ Retrieves the deployer wallet
 
 Creates the contract factory
 
-Deploys LiquidityLock with no constructor arguments
+Deploys MultiSigWallet with owner addresses and required threshold
+
+Saves deployment info to deployments/sepolia.json
 
 Waits for block confirmations
 
@@ -211,38 +223,37 @@ Verifies the contract on Etherscan
 
 | Contract | Address | Etherscan |
 |----------|---------|-----------|
-| LiquidityLock | 0x1BA24F8ebA2d865493b8e4B3D6cd1bDe8d42338B | https://sepolia.etherscan.io/address/0x1BA24F8ebA2d865493b8e4B3D6cd1bDe8d42338B#code
- |
+| MultiSigWallet | DEPLOY_ADDRESS | ETHERSCAN_LINK |
 
-Deployed: 2026/4/27
+Deployed: TBD
 
 
 ## SECURITY PRACTICES
 
-The contract uses well-established patterns from OpenZeppelin including:
+The contract uses well-established patterns from OpenZeppelin and Gnosis Safe including:
 
-ReentrancyGuard on all state-changing functions
+ReentrancyGuard on the execute function
 
-SafeERC20 for all token transfers
+Checks-effects-interactions pattern — state updated before external call
 
-State updates before external calls
+Dual owner tracking for gas efficient validation
 
-No admin privileges or owner controls
+No single point of control — all actions require multi-owner consensus
 
 These are common practices used in production smart contracts.
 
 
 ## EXAMPLE USE CASES
 
-This liquidity lock contract is suitable for:
+This multisig wallet contract is suitable for:
 
-Token launch projects proving liquidity commitment
+Protocol teams requiring shared control over admin functions
 
-DEX launches requiring investor trust
+DAOs needing trustless multi-owner execution
 
-Presale projects locking LP after launch
+Projects transferring contract ownership to a multisig for security
 
-Any project needing verifiable liquidity lockup
+Any team handling treasury or privileged contract actions
 
 
 ## FULL TOKEN SUITE
@@ -261,6 +272,7 @@ This contract is part of the Tredway Development token suite:
 | TokenGovernance | On-chain DAO voting |
 | NftMembership | ERC-721 membership NFT |
 | LiquidityLock | LP token time lock |
+| MultiSigWallet | Multi-owner transaction approval |
 
 
 ## AUTHOR
