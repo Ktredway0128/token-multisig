@@ -1,0 +1,11 @@
+{
+  "MultiSigWallet": {
+    "address": "0xdF102938A7E1a9b387f70a229C8D2D43f5663368",
+    "owners": [
+      "0x51782f68362dda6873dB835153DDC2Dc7c92A514",
+      "0xB6266E4Fd8e161A702c3c87fDC67C418bF941D90",
+      "0xad08767a27bdbfE65d1D84F2ea79fa62A3009E9F"
+    ],
+    "required": 2
+  }
+}
